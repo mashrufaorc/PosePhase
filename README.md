@@ -10,14 +10,14 @@ Select the exercise and input source (webcam or video file) and receive instant 
 ### Setup
 
 1. Clone or download this repository
-2. ```powershell
-   git clone https://github.com/mashrufaorc/PosePhase.git 
-   ```
-3. Navigate to the project directory:
+```powershell
+git clone https://github.com/mashrufaorc/PosePhase.git
+```
+2. Navigate to the project directory:
    ```powershell
    cd PosePhase
    ```
-4. Install required dependencies:
+3. Install required dependencies:
    ```powershell
    pip install -r requirements.txt
    ```
