@@ -11,7 +11,7 @@ Select the exercise and input source (webcam or video file) and receive instant 
 
 1. Clone or download this repository
 2. ```powershell
-   git clone https://github.com/mashrufaorc/PosePhase.git
+   git clone https://github.com/mashrufaorc/PosePhase.git 
    ```
 3. Navigate to the project directory:
    ```powershell
