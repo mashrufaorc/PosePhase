@@ -1,0 +1,46 @@
+classifier:
+  pushup_trunk_min: 165
+  pushup_wrist_below: 0.02
+  pushup_top_elbow: 165
+  pushup_elbow_flex_range: 50
+
+  squat_trunk_max: 155
+  squat_trunk_range: 50
+  squat_stand_knee: 165
+  squat_knee_flex_range: 70
+  squat_sym_knee_max: 12
+
+  lunge_asym_min: 10
+  lunge_asym_max: 40
+
+squat:
+  stand_knee: 165
+  stand_hip: 165
+  bottom_knee: 95
+  vel_eps: 2.0
+
+pushup:
+  top_elbow: 165
+  bottom_elbow: 90
+  plank_line: 165
+  vel_eps: 2.0
+
+lunge:
+  stand_front_knee: 165
+  stand_back_knee: 165
+  bottom_front_knee: 95
+  bottom_back_knee: 110
+  vel_eps: 2.0
+
+form:
+  squat:
+    sym_knee_max: 12
+    bottom_knee_max: 110
+
+  pushup:
+    plank_min: 160
+    bottom_elbow_max: 110
+
+  lunge:
+    bottom_front_knee_max: 110
+    bottom_back_knee_max: 125
