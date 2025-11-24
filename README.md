@@ -15,15 +15,7 @@ git clone https://github.com/mashrufaorc/PosePhase.git
 cd posephase
 ```
 
-### 2. Create a virtual environment
-
-```bash
-python -m venv venv
-source venv/bin/activate     # macOS / Linux
-venv\Scripts\activate        # Windows
-```
-
-### 3. Install dependencies
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
