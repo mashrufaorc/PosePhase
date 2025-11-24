@@ -185,35 +185,6 @@ posephase/
 ```
 ---
 
-## Evaluation Workflow
-
-### 1. Prepare ground truth
-
-Create a CSV with:
-
-```
-frame_idx,phase_gt,exercise_gt
-0,Start,squat
-1,Descending,squat
-...
-```
-
-### 2. Run metrics
-
-```bash
-python evaluation/metrics.py \
-    --pred_frames reports/frame_log.csv \
-    --gt_frames ground_truth_frames.csv
-```
-
-Results saved to:
-
-```
-reports/metrics/
-```
-
----
-
 ## Output Files
 
 | File              | Description                                          |
