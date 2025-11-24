@@ -11,7 +11,7 @@ Using 2D pose estimation, interpretable finite state machines, rule-based biomec
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/<YOUR_USERNAME>/posephase.git
+git clone https://github.com/mashrufaorc/PosePhase.git
 cd posephase
 ```
 
