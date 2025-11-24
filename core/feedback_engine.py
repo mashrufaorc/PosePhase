@@ -16,8 +16,6 @@ class FeedbackEngine:
         # praise only if score >= threshold and no warnings
         self.praise_threshold = praise_threshold
 
-        # If you want praise only at certain phases (e.g., top of rep),
-        # set praise_phases=["Top","Start"] etc.
         self.praise_phases = praise_phases  # None means any phase is ok
 
         self.praise_lines = [

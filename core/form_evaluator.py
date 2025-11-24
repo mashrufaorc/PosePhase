@@ -18,7 +18,7 @@ class FormEvaluator:
             warnings.append("Keep knees even")
             score -= 0.2
         if state.pretty == "Bottom" and f["knee_angle_avg"] > self.th["bottom_knee_max"]:
-            warnings.append("Go deeper")
+            warnings.append("Go lower")
             score -= 0.3
         return {"score": max(score, 0), "warnings": warnings}
 
