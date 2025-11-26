@@ -21,6 +21,7 @@ FSM_MAP = {"squat": SquatFSM, "pushup": PushupFSM, "lunge": LungeFSM}
 
 class SessionRunner:
     """
+    The main function that brings together all components.
     Shared runner for webcam + video modes.
 
     Features:
