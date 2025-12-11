@@ -31,18 +31,6 @@ pip install -r requirements.txt
 python app_launcher.py
 ```
 
-### Run webcam session (CLI)
-
-```bash
-python main_webcam.py
-```
-
-### Run offline video analysis
-
-```bash
-python run_video.py --input input_video.mp4 --output annotated_output.mp4
-```
-
 ---
 
 ## Features
@@ -192,7 +180,7 @@ posephase/
 | `frame_log.csv`   | Per-frame landmarks, phases, angles, warnings, score |
 | `rep_log.csv`     | Start/end frame of each rep, time, depth, quality    |
 | `summary.json`    | Overall summary for the session results screen       |
-| `annotated_*.mp4` | Optional video with pose overlay and HUD             |
+| `annotated_*.mp4` | Video with pose overlay and HUD             |
 
 ---
 
