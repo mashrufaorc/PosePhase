@@ -1,46 +1,46 @@
 classifier:
-  pushup_trunk_min: 165
-  pushup_wrist_below: 0.02
-  pushup_top_elbow: 165
-  pushup_elbow_flex_range: 50
+  pushup_trunk_min: 165          # Minimum trunk angle to count as a straight/neutral push-up plank
+  pushup_wrist_below: 0.02       # Wrist must be below this relative height (small threshold) to confirm proper hand position
+  pushup_top_elbow: 165          # Elbow angle at the top position (arms nearly straight)
+  pushup_elbow_flex_range: 50    # Required elbow bending range to count a full rep
 
-  squat_trunk_max: 155
-  squat_trunk_range: 50
-  squat_stand_knee: 165
-  squat_knee_flex_range: 70
-  squat_sym_knee_max: 12
+  squat_trunk_max: 155           # Maximum allowed trunk lean angle during squat
+  squat_trunk_range: 50          # Total trunk movement range to validate squat depth
+  squat_stand_knee: 165          # Knee angle when standing fully upright
+  squat_knee_flex_range: 70      # Required knee bending range for a valid squat
+  squat_sym_knee_max: 12         # Max left/right knee angle difference allowed for symmetry
 
-  lunge_asym_min: 10
-  lunge_asym_max: 40
+  lunge_asym_min: 10             # Minimum acceptable asymmetry to detect a lunge stance
+  lunge_asym_max: 40             # Maximum asymmetry before it becomes incorrect form
 
 squat:
-  stand_knee: 165
-  stand_hip: 165
-  bottom_knee: 95
-  vel_eps: 2.0
+  stand_knee: 165                # Knee angle at full standing position
+  stand_hip: 165                 # Hip angle at full standing position
+  bottom_knee: 95                # Knee angle at lowest squat depth
+  vel_eps: 2.0                   # Minimum velocity threshold to detect movement direction changes
 
 pushup:
-  top_elbow: 165
-  bottom_elbow: 90
-  plank_line: 165
-  vel_eps: 2.0
+  top_elbow: 165                 # Elbow angle at the top of a push-up
+  bottom_elbow: 90               # Elbow angle at the bottom (deep push-up)
+  plank_line: 165                # Shoulder–hip–ankle angle threshold for a proper plank line
+  vel_eps: 2.0                   # Velocity threshold for rep detection
 
 lunge:
-  stand_front_knee: 165
-  stand_back_knee: 165
-  bottom_front_knee: 95
-  bottom_back_knee: 110
-  vel_eps: 2.0
+  stand_front_knee: 165          # Front leg knee angle when standing
+  stand_back_knee: 165           # Back leg knee angle when standing
+  bottom_front_knee: 95          # Front knee angle at deepest lunge
+  bottom_back_knee: 110          # Back knee angle at deepest lunge
+  vel_eps: 2.0                   # Velocity threshold for detecting rep direction
 
 form:
   squat:
-    sym_knee_max: 12
-    bottom_knee_max: 110
+    sym_knee_max: 12             # Max asymmetry tolerated between knees during squat
+    bottom_knee_max: 110         # Max safe knee angle at bottom (avoid excessive depth)
 
   pushup:
-    plank_min: 160
-    bottom_elbow_max: 110
+    plank_min: 160               # Minimum acceptable plank straightness before flagging hip sag
+    bottom_elbow_max: 110        # Max elbow angle allowed at bottom before it's considered too shallow
 
   lunge:
-    bottom_front_knee_max: 110
-    bottom_back_knee_max: 125
+    bottom_front_knee_max: 110   # Max safe front knee angle at bottom
+    bottom_back_knee_max: 125    # Max safe back knee angle at bottom

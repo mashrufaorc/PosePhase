@@ -1,3 +1,14 @@
+"""
+Finite-state machine for detecting lunge phases.
+
+This module defines LungeFSM, a specialized FSM that transitions through the
+phases of a lunge movement (START → DESCENDING → BOTTOM → ASCENDING → START).
+Transitions are triggered based on knee angles and knee velocities, using
+thresholds provided in a configuration dictionary. The FSM updates each frame
+to determine whether the user is lowering, at the bottom, or rising from a
+lunge, enabling consistent rep detection and form analysis.
+"""
+
 from .fsm_base import FiniteStateMachine
 from .states import PhaseName
 

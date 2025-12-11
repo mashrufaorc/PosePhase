@@ -1,3 +1,14 @@
+"""
+Finite-state machine for detecting squat phases.
+
+This module defines SquatFSM, an FSM that tracks the phases of a squat
+movement (START → DESCENDING → BOTTOM → ASCENDING → START). Transitions
+are determined using knee and hip angles, as well as knee velocity,
+compared against configurable threshold values. The FSM updates each
+frame to identify when the user begins descending, reaches the bottom,
+or returns to standing, enabling accurate rep detection and form checks.
+"""
+
 from .fsm_base import FiniteStateMachine
 from .states import PhaseName
 

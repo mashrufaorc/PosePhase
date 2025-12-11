@@ -1,0 +1,5 @@
+rep_id,exercise,start_time,end_time,duration_s,min_knee,min_elbow,avg_score,warnings_count,warnings_top
+1,squat,1.585,10.185,8.6,72.92,156.79,1.0,0,
+2,squat,10.224,19.284,9.06,72.73,157.6,1.0,0,
+3,squat,19.32,28.412,9.092,72.78,155.65,1.0,0,
+4,squat,28.451,37.794,9.343,72.93,156.22,1.0,0,

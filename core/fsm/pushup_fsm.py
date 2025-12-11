@@ -1,3 +1,14 @@
+"""
+Finite-state machine for detecting push-up phases.
+
+This module defines PushupFSM, an FSM that cycles through the phases of a
+push-up (TOP → DESCENDING → BOTTOM → ASCENDING → TOP). Transitions are driven
+by elbow angles, elbow velocity, and plank-line alignment, using threshold
+values supplied in a configuration dictionary. The FSM updates each frame to
+determine whether the user is lowering, at the bottom, or pushing back up,
+supporting reliable rep counting and form evaluation.
+"""
+
 from .fsm_base import FiniteStateMachine
 from .states import PhaseName
 
