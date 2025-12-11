@@ -83,7 +83,7 @@ class PosePhaseLauncher:
         # Subtitle
         tk.Label(
             self.root,
-            text="Real-Time Pose-Based Exercise Coach",
+            text="Pose-Based Biomechanics Engine",
             font=("Segoe UI", 10),
             fg=MUTED, bg=BG
         ).pack(pady=(0, 12))
