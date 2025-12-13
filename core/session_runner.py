@@ -60,6 +60,9 @@ class SessionRunner:
 
         # Currently active exercise label
         self.current_ex = None
+        # Debounce exercise switching to avoid frequent FSM resets from classifier noise
+        self._ex_candidate = None
+        self._ex_candidate_n = 0
 
         # UI renderer for pose and HUD
         self.ui = RendererUI()
@@ -130,6 +133,50 @@ class SessionRunner:
 
         # Update summary with current exercise
         self.summary["exercise"] = label
+
+        # Reset pending candidate tracking after an explicit swap
+        self._ex_candidate = None
+        self._ex_candidate_n = 0
+
+    def _maybe_swap_exercise(self, label: str, confidence: float):
+        """
+        Debounced exercise switching.
+
+        Classifier outputs can be noisy (especially when form degrades and warnings appear),
+        which can cause rapid label flips and repeated FSM resets. That often looks like
+        the phase is "stuck" in START/TOP because the FSM keeps resetting.
+        """
+        # First exercise selection: swap immediately
+        if self.current_ex is None:
+            self._swap_exercise(label)
+            return
+
+        # No change: clear any pending candidate
+        if label == self.current_ex:
+            self._ex_candidate = None
+            self._ex_candidate_n = 0
+            return
+
+        clf_cfg = self.cfg.get("classifier", {}) if isinstance(self.cfg, dict) else {}
+        stable_frames = int(clf_cfg.get("switch_stable_frames", 8))
+        min_conf = float(clf_cfg.get("switch_min_conf", 0.55))
+
+        # Ignore low-confidence flips
+        if confidence < min_conf:
+            self._ex_candidate = None
+            self._ex_candidate_n = 0
+            return
+
+        # Track candidate label stability over consecutive frames
+        if self._ex_candidate != label:
+            self._ex_candidate = label
+            self._ex_candidate_n = 1
+        else:
+            self._ex_candidate_n += 1
+
+        # Apply swap once the candidate is stable for long enough
+        if self._ex_candidate_n >= stable_frames:
+            self._swap_exercise(self._ex_candidate)
 
     # Main loop
     def run(
@@ -203,8 +250,7 @@ class SessionRunner:
                 else:
                     # Classifier-based exercise prediction
                     pred = self.classifier.predict(features)
-                    if self.current_ex != pred.label:
-                        self._swap_exercise(pred.label)
+                    self._maybe_swap_exercise(pred.label, pred.confidence)
 
                 # FSM, repetition count, and form scoring
                 state = self.fsm.update(features)

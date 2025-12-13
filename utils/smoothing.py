@@ -100,6 +100,13 @@ class SignalSmoother:
         out = {}
 
         for k, v in signals.items():
+            # Do not smooth velocity-like signals.
+            # Velocity is already a derived quantity (difference of angles), and smoothing it
+            # can suppress peaks and break threshold-based FSM transitions.
+            if k.endswith("_vel") or k.endswith("_vel_avg"):
+                out[k] = v
+                continue
+
             filt = self.filters.get(k)
 
             # Create filter on first use
