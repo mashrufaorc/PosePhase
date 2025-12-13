@@ -35,7 +35,7 @@ lunge:
 form:
   squat:
     sym_knee_max: 12             # Max asymmetry tolerated between knees during squat
-    bottom_knee_max: 110         # Max safe knee angle at bottom (avoid excessive depth)
+    bottom_knee_max: 110         # Max knee angle allowed at your deepest point (higher = too shallow)
 
   pushup:
     plank_min: 160               # Minimum acceptable plank straightness before flagging hip sag

@@ -28,6 +28,12 @@ class PushupFSM(FiniteStateMachine):
             PhaseName.DESCENDING, PhaseName.BOTTOM,
             lambda f, c: f["elbow_angle_avg"] <= th["bottom_elbow"] and abs(f["elbow_vel_avg"]) <= th["vel_eps"]
         )
+        # Fallback for shallow push-ups: if direction reverses (elbow angle increasing)
+        # before reaching the configured bottom threshold, don't get stuck in DESCENDING.
+        self.add_transition(
+            PhaseName.DESCENDING, PhaseName.ASCENDING,
+            lambda f, c: f["elbow_vel_avg"] > th["vel_eps"] and f["elbow_angle_avg"] > th["bottom_elbow"]
+        )
         self.add_transition(
             PhaseName.BOTTOM, PhaseName.ASCENDING,
             lambda f, c: f["elbow_vel_avg"] > th["vel_eps"]

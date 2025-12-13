@@ -30,6 +30,14 @@ class LungeFSM(FiniteStateMachine):
                          and f["back_knee_angle"] <= th["bottom_back_knee"]
                          and abs(f["front_knee_vel"]) <= th["vel_eps"]
         )
+        # Fallback for shallow lunges: if direction reverses (front knee angle increasing)
+        # before reaching configured bottom thresholds, don't get stuck in DESCENDING.
+        self.add_transition(
+            PhaseName.DESCENDING, PhaseName.ASCENDING,
+            lambda f, c: f["front_knee_vel"] > th["vel_eps"] and (
+                f["front_knee_angle"] > th["bottom_front_knee"] or f["back_knee_angle"] > th["bottom_back_knee"]
+            )
+        )
         self.add_transition(
             PhaseName.BOTTOM, PhaseName.ASCENDING,
             lambda f, c: f["front_knee_vel"] > th["vel_eps"]
