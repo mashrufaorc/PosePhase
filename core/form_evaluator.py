@@ -15,6 +15,7 @@ class FormEvaluator:
         self._min_elbow = None
         self._min_front_knee = None
         self._min_back_knee = None
+        self._lunge_rep_scored = False
 
     def scorePhase(self, state, f):
         # IMPORTANT: _prev_phase must refer to the *previous* frame's phase
@@ -50,12 +51,18 @@ class FormEvaluator:
             self._min_elbow = None
             self._min_front_knee = None
             self._min_back_knee = None
+            self._lunge_rep_scored = False
 
+        # Squat/pushup: minima only during DESCENDING (we score at turnaround).
         if phase == PhaseName.DESCENDING:
             if "knee_angle_avg" in f:
                 self._min_knee = f["knee_angle_avg"] if self._min_knee is None else min(self._min_knee, f["knee_angle_avg"])
             if "elbow_angle_avg" in f:
                 self._min_elbow = f["elbow_angle_avg"] if self._min_elbow is None else min(self._min_elbow, f["elbow_angle_avg"])
+
+        # Lunge: track minima across the entire active rep (DESCENDING/BOTTOM/ASCENDING).
+        # This avoids false warnings caused by early/noisy ASCENDING transitions.
+        if self.exercise == "lunge" and phase in (PhaseName.DESCENDING, PhaseName.BOTTOM, PhaseName.ASCENDING):
             if "front_knee_angle" in f:
                 self._min_front_knee = f["front_knee_angle"] if self._min_front_knee is None else min(self._min_front_knee, f["front_knee_angle"])
             if "back_knee_angle" in f:
@@ -64,6 +71,10 @@ class FormEvaluator:
     def _is_turnaround_to_ascending(self, state) -> bool:
         phase = getattr(state, "name", None)
         return phase == PhaseName.ASCENDING and self._prev_phase in (PhaseName.DESCENDING, PhaseName.BOTTOM)
+
+    def _is_rep_complete_to_top(self, state) -> bool:
+        phase = getattr(state, "name", None)
+        return phase in (PhaseName.START, PhaseName.TOP) and self._prev_phase == PhaseName.ASCENDING
 
     def _squat(self, state, f):
         # Initialize full score and an empty list of warnings
@@ -105,8 +116,10 @@ class FormEvaluator:
         # Initialize full score and an empty list of warnings
         warnings, score = [], 1.0
 
-        # Evaluate depth at the turnaround into ASCENDING (robust to shallow reps).
-        if self._is_turnaround_to_ascending(state):
+        # Evaluate lunge depth once per rep, when returning to START after ASCENDING.
+        # This prevents false positives on the first ASCENDING frame caused by
+        # velocity noise, while still catching genuinely shallow reps.
+        if (not self._lunge_rep_scored) and self._is_rep_complete_to_top(state):
             if (self._min_front_knee is not None) and (self._min_front_knee > self.th["bottom_front_knee_max"]):
                 warnings.append("Front knee not bending enough")
                 score -= 0.25
@@ -114,6 +127,8 @@ class FormEvaluator:
             if (self._min_back_knee is not None) and (self._min_back_knee > self.th["bottom_back_knee_max"]):
                 warnings.append("Back knee not lowering enough")
                 score -= 0.25
+
+            self._lunge_rep_scored = True
 
         # Ensure score does not fall below zero
         return {"score": max(score, 0), "warnings": warnings}
