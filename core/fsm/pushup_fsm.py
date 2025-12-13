@@ -28,6 +28,11 @@ class PushupFSM(FiniteStateMachine):
             PhaseName.DESCENDING, PhaseName.BOTTOM,
             lambda f, c: f["elbow_angle_avg"] <= th["bottom_elbow"] and abs(f["elbow_vel_avg"]) <= th["vel_eps"]
         )
+        # Escape hatch: tolerate missed "bottom pause" frames due to stalls/dropped frames.
+        self.add_transition(
+            PhaseName.DESCENDING, PhaseName.ASCENDING,
+            lambda f, c: f["elbow_vel_avg"] > th["vel_eps"] and f["elbow_angle_avg"] <= (th["bottom_elbow"] + 12)
+        )
         self.add_transition(
             PhaseName.BOTTOM, PhaseName.ASCENDING,
             lambda f, c: f["elbow_vel_avg"] > th["vel_eps"]

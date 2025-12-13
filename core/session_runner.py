@@ -303,6 +303,12 @@ class SessionRunner:
         if writer:
             writer.release()
 
+        # Best-effort: stop TTS thread cleanly
+        try:
+            self.audio.close()
+        except Exception:
+            pass
+
         self.frame_logger.close()
         self.rep_logger.close()
 

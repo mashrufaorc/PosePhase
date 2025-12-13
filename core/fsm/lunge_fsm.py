@@ -30,6 +30,11 @@ class LungeFSM(FiniteStateMachine):
                          and f["back_knee_angle"] <= th["bottom_back_knee"]
                          and abs(f["front_knee_vel"]) <= th["vel_eps"]
         )
+        # Escape hatch: tolerate missed "bottom pause" frames.
+        self.add_transition(
+            PhaseName.DESCENDING, PhaseName.ASCENDING,
+            lambda f, c: f["front_knee_vel"] > th["vel_eps"] and f["front_knee_angle"] <= (th["bottom_front_knee"] + 12)
+        )
         self.add_transition(
             PhaseName.BOTTOM, PhaseName.ASCENDING,
             lambda f, c: f["front_knee_vel"] > th["vel_eps"]

@@ -28,6 +28,12 @@ class SquatFSM(FiniteStateMachine):
             PhaseName.DESCENDING, PhaseName.BOTTOM,
             lambda f, c: f["knee_angle_avg"] <= th["bottom_knee"] and abs(f["knee_vel_avg"]) <= th["vel_eps"]
         )
+        # Escape hatch: if we miss the exact "bottom pause" frame (e.g., dropped frames),
+        # allow switching to ASCENDING once velocity flips positive near the bottom.
+        self.add_transition(
+            PhaseName.DESCENDING, PhaseName.ASCENDING,
+            lambda f, c: f["knee_vel_avg"] > th["vel_eps"] and f["knee_angle_avg"] <= (th["bottom_knee"] + 12)
+        )
         self.add_transition(
             PhaseName.BOTTOM, PhaseName.ASCENDING,
             lambda f, c: f["knee_vel_avg"] > th["vel_eps"]
