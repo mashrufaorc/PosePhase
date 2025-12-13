@@ -46,7 +46,17 @@ class FormEvaluator:
         depth at the direction reversal (DESCENDING -> ASCENDING).
         """
         # Reset trackers when we are clearly in a "top" position.
+        #
+        # For lunges we sometimes want to score *on* the first START frame
+        # after ASCENDING (rep completion). In that case we must NOT clear the
+        # stored minima before the scoring logic runs.
         if phase in (PhaseName.START, PhaseName.TOP, PhaseName.RESET):
+            if (
+                self.exercise == "lunge"
+                and (self._prev_phase == PhaseName.ASCENDING)
+                and (not self._lunge_rep_scored)
+            ):
+                return
             self._min_knee = None
             self._min_elbow = None
             self._min_front_knee = None
