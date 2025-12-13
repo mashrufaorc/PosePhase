@@ -93,7 +93,7 @@ class FormEvaluator:
         # Check knee symmetry error: excessive angle difference left vs right
         if f.get("sym_knee", 0.0) > self.th["sym_knee_max"]:
             warnings.append("Knee alignment uneven")
-            score -= 0.2
+            score -= 0.3
 
         # Check squat depth at the turnaround into ASCENDING.
         # This works both for strict "Bottom" reps and shallow reps where the
@@ -132,11 +132,11 @@ class FormEvaluator:
         if (not self._lunge_rep_scored) and self._is_rep_complete_to_top(state):
             if (self._min_front_knee is not None) and (self._min_front_knee > self.th["bottom_front_knee_max"]):
                 warnings.append("Front knee not bending enough")
-                score -= 0.25
+                score -= 0.3
 
             if (self._min_back_knee is not None) and (self._min_back_knee > self.th["bottom_back_knee_max"]):
                 warnings.append("Back knee not lowering enough")
-                score -= 0.25
+                score -= 0.3
 
             self._lunge_rep_scored = True
 

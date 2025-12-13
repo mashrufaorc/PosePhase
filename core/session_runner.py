@@ -84,6 +84,11 @@ class SessionRunner:
         self.rep_buffer = []  # stores frame rows belonging to the current rep
         self.session_start = time.time()
 
+        # Rep-final feedback (shown/spoken only when a rep completes)
+        self._rep_final_ui_text = ""
+        self._rep_final_warnings = []
+        self._rep_final_expire_time = 0.0
+
         # Running statistics for score and warnings
         self._score_sum = 0.0
         self._score_n = 0
@@ -216,11 +221,9 @@ class SessionRunner:
                 # Feedback for UI and audio (score, warnings, praise)
                 fb = self.feedback.generate(state, phase_score, features, rep_count)
 
-                # Handle spoken feedback (warnings or praise)
-                speak_msg = fb.get("speak_text", "")
-                if speak_msg:
-                    # AudioFeedback handles debouncing and repetition control
-                    self.audio.speak(speak_msg)
+                # NOTE: Audio is spoken at rep completion (rep-final feedback),
+                # not continuously per-frame. This avoids spamming TTS and
+                # ensures the final warning/praise is reliably spoken.
 
                 # Running statistics updates
                 self._score_sum += float(fb["score"])
@@ -254,7 +257,17 @@ class SessionRunner:
 
                 # Flush rep-level log when repetition count increases
                 if rep_count > self.rep_id:
-                    self._flush_rep(rep_count)
+                    rep_final = self._flush_rep(rep_count)
+                    if rep_final:
+                        # Show rep-final message briefly so it is visible.
+                        self._rep_final_ui_text = rep_final.get("ui_text", "") or ""
+                        self._rep_final_warnings = rep_final.get("warnings", []) or []
+                        self._rep_final_expire_time = time.time() + 1.2
+
+                        # Speak rep-final feedback even if it repeats an earlier warning.
+                        speak_final = rep_final.get("speak_text", "") or ""
+                        if speak_final:
+                            self.audio.speak(speak_final, force=True)
 
                 # Session summary statistics
                 self.summary["rep_count"] = rep_count
@@ -276,14 +289,22 @@ class SessionRunner:
 
                 # UI rendering (pose + HUD)
                 self.ui.drawPose(frame, landmarks)
+
+                # If a rep just completed, prefer rep-final feedback for a short window.
+                feedback_text = fb["ui_text"]
+                warnings_for_ui = fb["warnings"]
+                if time.time() < self._rep_final_expire_time and self._rep_final_ui_text:
+                    feedback_text = self._rep_final_ui_text
+                    warnings_for_ui = self._rep_final_warnings
+
                 self.ui.drawHUD(
                     frame,
                     pred.label,
                     pred.confidence,
                     state,
                     rep_count,
-                    fb["warnings"],
-                    fb["ui_text"],
+                    warnings_for_ui,
+                    feedback_text,
                     pred.debug
                 )
 
@@ -321,7 +342,7 @@ class SessionRunner:
         and write a single entry to rep_log.csv.
         """
         if not self.rep_buffer:
-            return
+            return None
 
         # Update internal rep counter
         self.rep_id = rep_count
@@ -361,3 +382,24 @@ class SessionRunner:
         # Write rep-level row and clear buffer for the next repetition
         self.rep_logger.log(rep_row)
         self.rep_buffer.clear()
+
+        # Rep-final feedback rule:
+        # - If the rep completed with zero warnings, praise once.
+        # - Otherwise, show/speak the most frequent warning from the rep.
+        if all_warn:
+            final_text = top_warn or all_warn[0]
+            return {
+                "ui_text": f"Fix: {final_text}",
+                "speak_text": final_text,
+                "warnings": [final_text],
+            }
+
+        praise = self.feedback.praise_for_rep(rep_count)
+        if praise:
+            return {
+                "ui_text": praise,
+                "speak_text": praise,
+                "warnings": [],
+            }
+
+        return None

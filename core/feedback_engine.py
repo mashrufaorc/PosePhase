@@ -31,6 +31,14 @@ class FeedbackEngine:
             "Excellent movement!"
         ]
 
+    def praise_for_rep(self, rep_count: int) -> str:
+        """
+        Select a praise line for a completed repetition.
+        """
+        if not self.praise_lines:
+            return ""
+        return self.praise_lines[rep_count % len(self.praise_lines)]
+
     def generate(self,
                  state,
                  phase_score: Dict[str, Any],
@@ -41,38 +49,17 @@ class FeedbackEngine:
         warnings = phase_score.get("warnings", []) or []
         score = float(phase_score.get("score", 1.0))
 
-        # Praise selection
-        praise_text = ""
-
-        # Determine whether praise is allowed in the current movement phase.
-        phase_ok = True
-        if self.praise_phases is not None:
-            phase_ok = state.pretty in self.praise_phases
-
-        # Praise conditions:
-        #   - no warnings present
-        #   - score meets or exceeds praise threshold
-        #   - current phase is allowed for praise
-        if (not warnings) and (score >= self.praise_threshold) and phase_ok:
-            # Cycle through praise lines based on repetition count
-            praise_text = self.praise_lines[rep_count % len(self.praise_lines)]
-            
         # Speak-text priority:
-        # warnings > praise > no audio
+        # warnings > no audio
         speak_text = ""
         if warnings:
             # Use the first warning as spoken feedback
             speak_text = warnings[0]
-        elif praise_text:
-            speak_text = praise_text
 
         # UI text construction
         if warnings:
             # Display warnings first when any appear
             ui_text = f"Fix: {', '.join(warnings)} | Score {score:.2f}"
-        elif praise_text:
-            # Display praise message when applicable
-            ui_text = f"{praise_text} | Score {score:.2f}"
         else:
             # Default UI text when no warnings or praise conditions are met
             ui_text = f"Score {score:.2f}"
