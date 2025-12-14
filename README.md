@@ -207,7 +207,7 @@ Includes:
 Place architecture diagram here:
 
 ```
-...................
+PosePhase runs a per-frame pipeline: MediaPipe Pose → biomechanical features → smoothing → exercise detection or forced selection → FSM phase recognition → rep counting → rule-based form scoring → feedback (visual + audio) → logging + evaluation
 ```
 
 ---
