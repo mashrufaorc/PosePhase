@@ -1,0 +1,5 @@
+label,iou,tp,fp,fn
+Ascending,0.0,0,0,25
+Bottom,0.0,0,0,29
+Descending,0.0,0,0,34
+Top,0.42105263157894735,64,88,0

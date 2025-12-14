@@ -1,0 +1,2 @@
+n_frames_eval,frame_accuracy,transition_accuracy,mean_iou,precision_macro,recall_macro,f1_macro,precision_weighted,recall_weighted,f1_weighted,rep_phase_used,gt_reps,pred_reps,rep_tp,rep_fp,rep_fn,rep_abs_error,rep_precision,rep_recall,rep_f1,exercise_accuracy
+152,0.42105263157894735,0.0,0.10526315789473684,0.10526315789473684,0.25,0.14814814814814814,0.1772853185595568,0.42105263157894735,0.24951267056530213,Ascending,1,0,0,0,1,1,0.0,0.0,0.0,1.0
