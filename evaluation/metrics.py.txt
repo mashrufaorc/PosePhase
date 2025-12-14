@@ -1,0 +1,228 @@
+import pandas as pd
+import numpy as np
+from pathlib import Path
+from typing import Dict, List, Tuple, Optional
+
+
+# ---------------------------
+# Helpers
+# ---------------------------
+
+def _norm(s: pd.Series) -> pd.Series:
+    return s.astype(str).str.strip()
+
+def precision_recall_f1(y_true, y_pred, labels: List[str]) -> pd.DataFrame:
+    rows = []
+    for lab in labels:
+        tp = np.sum((y_true == lab) & (y_pred == lab))
+        fp = np.sum((y_true != lab) & (y_pred == lab))
+        fn = np.sum((y_true == lab) & (y_pred != lab))
+
+        prec = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        rec  = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        f1   = (2 * prec * rec / (prec + rec)) if (prec + rec) > 0 else 0.0
+        support = int(np.sum(y_true == lab))
+
+        rows.append({
+            "label": lab,
+            "precision": float(prec),
+            "recall": float(rec),
+            "f1": float(f1),
+            "support": support,
+            "tp": int(tp), "fp": int(fp), "fn": int(fn),
+        })
+    return pd.DataFrame(rows)
+
+def macro_weighted(df: pd.DataFrame) -> Dict[str, float]:
+    total = int(df["support"].sum()) if len(df) else 0
+    return {
+        "precision_macro": float(df["precision"].mean()) if len(df) else 0.0,
+        "recall_macro": float(df["recall"].mean()) if len(df) else 0.0,
+        "f1_macro": float(df["f1"].mean()) if len(df) else 0.0,
+        "precision_weighted": float((df["precision"] * df["support"]).sum() / total) if total else 0.0,
+        "recall_weighted": float((df["recall"] * df["support"]).sum() / total) if total else 0.0,
+        "f1_weighted": float((df["f1"] * df["support"]).sum() / total) if total else 0.0,
+    }
+
+def confusion_matrix(y_true, y_pred, labels: List[str]) -> pd.DataFrame:
+    mat = np.zeros((len(labels), len(labels)), dtype=int)
+    idx = {lab: i for i, lab in enumerate(labels)}
+    for t, p in zip(y_true, y_pred):
+        if t in idx and p in idx:
+            mat[idx[t], idx[p]] += 1
+    return pd.DataFrame(mat, index=labels, columns=labels)
+
+def phase_iou(y_true, y_pred, labels: List[str]) -> pd.DataFrame:
+    rows = []
+    for lab in labels:
+        tp = np.sum((y_true == lab) & (y_pred == lab))
+        fp = np.sum((y_true != lab) & (y_pred == lab))
+        fn = np.sum((y_true == lab) & (y_pred != lab))
+        denom = tp + fp + fn
+        iou = tp / denom if denom > 0 else 0.0
+        rows.append({"label": lab, "iou": float(iou), "tp": int(tp), "fp": int(fp), "fn": int(fn)})
+    return pd.DataFrame(rows)
+
+def count_transitions(phases: List[str]) -> List[Tuple[int, str, str]]:
+    trans = []
+    for i in range(1, len(phases)):
+        if phases[i] != phases[i - 1]:
+            trans.append((i, phases[i - 1], phases[i]))
+    return trans
+
+def transition_accuracy(gt_phases: List[str], pred_phases: List[str]) -> float:
+    # Compare just (from,to) pairs (not position)
+    gt_t = set((frm, to) for _, frm, to in count_transitions(gt_phases))
+    pr_t = set((frm, to) for _, frm, to in count_transitions(pred_phases))
+    if len(gt_t) == 0:
+        return 0.0
+    return float(len(gt_t.intersection(pr_t)) / len(gt_t))
+
+def count_reps_by_entering_phase(phases: List[str], rep_phase: str) -> int:
+    """Count reps as number of times we ENTER rep_phase."""
+    reps = 0
+    for i in range(1, len(phases)):
+        if phases[i] == rep_phase and phases[i - 1] != rep_phase:
+            reps += 1
+    return reps
+
+
+# ---------------------------
+# Main
+# ---------------------------
+
+def compute_metrics(
+    pred_frame_csv: str,
+    gt_frame_csv: str,
+    save_dir: str = "reports/metrics",
+    rep_phase: str = "ascending",
+):
+    save_dir = Path(save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    pred = pd.read_csv(pred_frame_csv)
+    gt = pd.read_csv(gt_frame_csv)
+
+    if pred.empty:
+        raise ValueError(f"pred_frames CSV is empty: {pred_frame_csv}")
+    if gt.empty:
+        raise ValueError(f"gt_frames CSV is empty: {gt_frame_csv}")
+
+    # --- adapt GT schema (your GT has phase/exercise) ---
+    if "phase_gt" not in gt.columns and "phase" in gt.columns:
+        gt = gt.rename(columns={"phase": "phase_gt"})
+    if "exercise_gt" not in gt.columns and "exercise" in gt.columns:
+        gt = gt.rename(columns={"exercise": "exercise_gt"})
+
+    # Required cols
+    for c in ["frame_idx", "phase"]:
+        if c not in pred.columns:
+            raise ValueError(f"pred missing '{c}'. Found: {list(pred.columns)}")
+    for c in ["frame_idx", "phase_gt"]:
+        if c not in gt.columns:
+            raise ValueError(f"gt missing '{c}'. Found: {list(gt.columns)}")
+
+    # Normalize
+    pred = pred.copy()
+    gt = gt.copy()
+    pred["frame_idx"] = pd.to_numeric(pred["frame_idx"], errors="coerce")
+    gt["frame_idx"] = pd.to_numeric(gt["frame_idx"], errors="coerce")
+    pred = pred.dropna(subset=["frame_idx"])
+    gt = gt.dropna(subset=["frame_idx"])
+    pred["frame_idx"] = pred["frame_idx"].astype(int)
+    gt["frame_idx"] = gt["frame_idx"].astype(int)
+
+    pred["phase"] = _norm(pred["phase"])
+    gt["phase_gt"] = _norm(gt["phase_gt"])
+
+    # Align
+    merged = pd.merge(pred, gt, on="frame_idx", how="inner")
+    if merged.empty:
+        raise ValueError("No overlapping frame_idx between pred and GT.")
+
+    y_true = merged["phase_gt"].astype(str).values
+    y_pred = merged["phase"].astype(str).values
+    labels = sorted(list(set(y_true) | set(y_pred)))
+
+    # Frame metrics
+    frame_acc = float(np.mean(y_true == y_pred))
+    prf_df = precision_recall_f1(y_true, y_pred, labels)
+    prf_summary = macro_weighted(prf_df)
+    iou_df = phase_iou(y_true, y_pred, labels)
+    mean_iou = float(iou_df["iou"].mean()) if len(iou_df) else 0.0
+    cm_df = confusion_matrix(y_true, y_pred, labels)
+    trans_acc = float(transition_accuracy(list(y_true), list(y_pred)))
+
+    # Rep metrics FROM FRAMES (rep_phase must exist in labels to be meaningful)
+    gt_phases = list(y_true)
+    pr_phases = list(y_pred)
+
+    gt_reps = count_reps_by_entering_phase(gt_phases, rep_phase)
+    pred_reps = count_reps_by_entering_phase(pr_phases, rep_phase)
+
+    rep_tp = min(gt_reps, pred_reps)
+    rep_fp = max(pred_reps - gt_reps, 0)
+    rep_fn = max(gt_reps - pred_reps, 0)
+    rep_abs_error = abs(pred_reps - gt_reps)
+
+    rep_precision = rep_tp / (rep_tp + rep_fp) if (rep_tp + rep_fp) else 0.0
+    rep_recall    = rep_tp / (rep_tp + rep_fn) if (rep_tp + rep_fn) else 0.0
+    rep_f1        = (2 * rep_precision * rep_recall / (rep_precision + rep_recall)) if (rep_precision + rep_recall) else 0.0
+
+    # Optional exercise accuracy (if present)
+    ex_acc = None
+    if "exercise" in merged.columns and "exercise_gt" in merged.columns:
+        ex_acc = float(np.mean(_norm(merged["exercise"]) == _norm(merged["exercise_gt"])))
+
+    results = {
+        "n_frames_eval": int(len(merged)),
+        "frame_accuracy": frame_acc,
+        "transition_accuracy": trans_acc,
+        "mean_iou": mean_iou,
+        **prf_summary,
+        "rep_phase_used": rep_phase,
+        "gt_reps": int(gt_reps),
+        "pred_reps": int(pred_reps),
+        "rep_tp": int(rep_tp),
+        "rep_fp": int(rep_fp),
+        "rep_fn": int(rep_fn),
+        "rep_abs_error": int(rep_abs_error),
+        "rep_precision": float(rep_precision),
+        "rep_recall": float(rep_recall),
+        "rep_f1": float(rep_f1),
+    }
+    if ex_acc is not None:
+        results["exercise_accuracy"] = ex_acc
+
+    # Save
+    pd.DataFrame([results]).to_csv(save_dir / "summary_metrics.csv", index=False)
+    prf_df.to_csv(save_dir / "per_phase_prf.csv", index=False)
+    iou_df.to_csv(save_dir / "per_phase_iou.csv", index=False)
+    cm_df.to_csv(save_dir / "confusion_matrix.csv")
+
+    # Helpful debug: show phase sets (so you pick a correct rep_phase)
+    print("\n[DEBUG] Unique phases in GT  :", sorted(set(gt_phases)))
+    print("[DEBUG] Unique phases in Pred:", sorted(set(pr_phases)))
+
+    print("\n=== Summary Metrics ===")
+    for k, v in results.items():
+        print(f"{k:22s}: {v:.4f}" if isinstance(v, float) else f"{k:22s}: {v}")
+
+    return results
+
+
+if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--pred_frames", required=True)
+    ap.add_argument("--gt_frames", required=True)
+    ap.add_argument("--save_dir", default="reports/metrics")
+    ap.add_argument("--rep_phase", default="bottom", help="Phase name counted as one rep when entered (must match labels exactly)")
+    args = ap.parse_args()
+
+    compute_metrics(
+        pred_frame_csv=args.pred_frames,
+        gt_frame_csv=args.gt_frames,
+        save_dir=args.save_dir,
+        rep_phase=args.rep_phase
+    )
