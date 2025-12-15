@@ -66,11 +66,15 @@ FSMs enable:
 
 Detects:
 
-* Insufficient depth
-* Knee drift and hip drop
-* Incomplete elbow extension
-* Lateral asymmetry
-* Trunk instability
+Squats
+* Knee Alignment Uneven
+* Insufficient Squat Depth
+Push-Ups
+* Body Line Not Straight
+* Push-Up Depth Insufficient
+Lunges
+* Front Knee Not Bending Enough
+* Back Knee Not Lowering Enough 
 
 Outputs:
 
