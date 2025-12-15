@@ -128,48 +128,58 @@ Compares predictions vs ground truth to compute:
 ## Folder Structure
 
 ```
-posephase/
-│
+PosePhase/
 ├── app_launcher.py
-├── main_webcam.py
-├── run_video.py
-│
+├── requirements.txt
+├── README.md
 ├── config/
 │   └── thresholds.yaml
-│
 ├── core/
-│   ├── session_runner.py
-│   ├── video_stream.py
-│   ├── video_file_stream.py
-│   ├── pose_estimator.py
-│   ├── feature_extractor.py
-│   ├── exercise_classifier.py
-│   ├── rep_counter.py
-│   ├── form_evaluator.py
-│   ├── feedback_engine.py
 │   ├── audio_feedback.py
-│   │
+│   ├── exercise_classifier.py
+│   ├── feature_extractor.py
+│   ├── feedback_engine.py
+│   ├── form_evaluator.py
+│   ├── pose_estimator.py
+│   ├── rep_counter.py
+│   ├── session_runner.py
+│   ├── video_file_stream.py
+│   ├── video_stream.py
 │   └── fsm/
 │       ├── fsm_base.py
-│       ├── states.py
-│       ├── squat_fsm.py
+│       ├── lunge_fsm.py
 │       ├── pushup_fsm.py
-│       └── lunge_fsm.py
-│
+│       ├── squat_fsm.py
+│       └── states.py
 ├── ui/
 │   └── renderer.py
-│
 ├── utils/
 │   ├── geometry.py
-│   ├── smoothing.py
-│   └── logger.py
-│
+│   ├── logger.py
+│   └── smoothing.py
 ├── evaluation/
-│   └── metrics.py
-│
+│   ├── gt_frames_lunge.csv
+│   ├── gt_frames_pushup.csv
+│   ├── gt_frames_squat.csv
+│   ├── metrics.py
+│   └── reports/
+│       ├── metrics_lunges/
+│       ├── metrics_pushups/
+│       └── metrics_squat/
 ├── reports/
-│
-└── README.md
+│   ├── frame_log.csv
+│   ├── rep_log.csv
+│   ├── video_summary.json
+│   └── webcam_summary.json
+├── images/
+│   └── video_file/
+│       └── squat/
+│           ├── bad_form/
+│           └── good_form/
+└── videos/
+    ├── lunge/
+    ├── pushup/
+    └── squat/
 ```
 ---
 
