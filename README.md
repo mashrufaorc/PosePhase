@@ -224,7 +224,7 @@ PosePhase runs a per-frame pipeline: MediaPipe Pose â†’ biomechanical features â
 
 ---
 
-Potential areas:
+Potential future improvements:
 
 * Additional exercises
 * ML-based exercise classifier
